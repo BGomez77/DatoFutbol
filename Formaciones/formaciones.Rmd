@@ -1,0 +1,346 @@
+---
+title: "Formaciones iniciales más usadas en las grandes ligas europeas"
+author: "Ismael Gómez"
+lang: es
+date: '2017-03-28'
+output:
+  html_document: default
+  pdf_document: default
+description: ' '
+draft: false
+image: false
+menu: ''
+share: yes
+slug: formaciones
+tags:
+- Formaciones
+- Premier
+- BBVA
+- Serie A
+- Bundesliga
+categories: ["Europa"]
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=7, fig.height=5, echo=F, warning=FALSE, message=FALSE)
+```
+
+```{r library}
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(RColorBrewer)
+library(plyr)
+library(stringdist)
+library(grid)
+library(gtable)
+```
+  
+Para el debut de DATO FUTBOL le daremos un vistazo a la rica base de datos de partidos de las principales ligas europeas, disponible abiertamente en el sitio de la comunidad de ciencia de datos [Kaggle](http://www.kaggle.com/). 
+
+Decidimos seleccionar solo las ligas y temporadas con los datos más completos, por lo que se tomaron en cuenta 10755 partidos equivalentes a 8 temporadas (2008/2009 a 2015/2016) de Premier League, La Liga BBVA, Serie A y Bundesliga.
+
+En los próximos post podremos ver análisis y detalles de otras variables, pero en este post nos centraremos en las formaciones iniciales de cada equipo Local y Visita. Esta información en la base de datos original está codificada con coordenadas X e Y para cada uno de los 22 jugadores que entran a la cancha, por lo que esta se tuvo que procesar para determinar las formaciones según la manera típica que estas se presentan (ej: 4-4-2, 4-3-3, etc.). Durante dicho proceso también se separó arbitrariamente el medio campo para distinguir entre volantes defensivos y ofensivos, dando pie a formaciones del tipo 4-2-3-1, 4-3-2-1, etc.
+
+A continuación los distintos análisis realizados (frecuencia total, por liga, por temporada y según resultados), los que corresponden exclusivamente a una estadística descriptiva (no inferencial). Considerar que en todos los casos se grafican las formaciones más frecuentes, descartando las que no tienen mayor presencia. A esto se deben las diferencias de cantidad de partidos entre gráficos.
+
+###### 1) Total de formaciones para equipos Local y Visita (todas las ligas)
+
+```{r c3, cache=T}
+t1 <- read.csv("tabla1.csv", header = TRUE)
+Locales <- t1[,c('league_id','season','resultado','formLocal')]
+colnames(Locales)[4] <- "form"
+Locales <-cbind(Locales,"L")
+colnames(Locales)[5] <- "Team"
+Visitas <- t1[,c('league_id','season','resultado','formVisita')]
+colnames(Visitas)[4] <- "form"
+Visitas <-cbind(Visitas,"V")
+colnames(Visitas)[5] <- "Team"
+t2 <- rbind(Locales,Visitas)
+
+# distribucion formaciones
+# # local
+local_form <- t1 %>% count('formLocal') %>% mutate(S = "L")
+names(local_form)[1] <- "form"
+# # away
+away_form <- t1 %>% count('formVisita') %>% mutate(S = "V")
+names(away_form)[1] <- "form"
+# # ambos
+form <- rbind(local_form, away_form)
+
+ft <- aggregate(freq ~ form, data=form, FUN=sum)
+ft <- ft[order(ft$freq,decreasing = F),]
+
+pform1 <- ggplot(t2, aes(x = form)) + 
+        geom_bar(stat = "count", aes(fill=factor(Team)), alpha=0.4, position = position_identity()) + 
+        coord_flip()
+p1 = pform1 + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        scale_fill_brewer(palette = "Set1", name="Equipo\nLocal/Visita") +
+        theme(legend.background = element_rect(fill="gray96"),
+              #strip.text.x = element_text(face="bold", size=12),
+              axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              legend.position=c(0.85,0.35),
+              legend.title = element_text(size=10, face="bold")) +
+        scale_x_discrete(limits=t(ft[6:21,1])) +
+        ggtitle(label="Formaciones iniciales", subtitle = "Dataset: 10733 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p1
+```
+Se pueden apreciar claramente las formaciones iniciales más utilizadas. Las 3 primeras son 4-2-3-1, 4-4-2 y 4-3-3.
+  
+Se evidencia la supremacía de la línea de 4 por sobre la de 3. La mejor exponente de la "línea de 3" (3-5-2) queda relegada al 5to lugar.
+  
+No hay diferencias notorias entre las formaciones usadas por equipos locales y equipos visitas.
+
+*** 
+
+###### 2) Total de formaciones por ligas
+
+```{r c4,cache=T}
+pform2 <- ggplot(t2, aes(x = form)) + 
+        geom_bar(stat = "count", aes(fill=factor(league_id))) + 
+        coord_flip()
+p2 = pform2 + facet_grid(~ league_id) + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        theme(axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              strip.text.x = element_text(face="bold", size=10),
+              strip.background = element_rect(fill="ghostwhite"),
+              legend.position="none") +
+        scale_x_discrete(limits=t(ft[6:21,1])) +
+        ggtitle(label="Formaciones iniciales por ligas", subtitle = "Dataset: 10733 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p2
+```
+
+Las ligas BBVA y Premier tienden a concentrar sus formaciones iniciales principalmente en solo 3 o 4 tipos: 4-2-3-1, 4-4-2 y 4-3-3 en ambas ligas y aparece 4-5-1 en la Premier con una cantidad considerable (es la liga en la que más se usa este esquema). En BBVA destaca ampliamente 4-2-3-1 por sobre todas las otras formaciones.
+  
+Por otro lado, Bundesliga y Serie A tienen un comportamieto más homogéneo, repartiéndose el uso de formaciones en distintos esquemas. Además de los esquemas típicos, en Bundesliga aparecen algunos esquemas como 4-1-4-1, 4-1-3-2 y 4-2-2-2, mientras que en Serie A aparecen esquemas con línea de 3: 3-5-2 y 3-6-1.
+  
+4-2-3-1 gana en BBVA y Bundesliga, 4-4-2 en Premier y 4-3-3 en Serie A.
+
+*** 
+
+###### 3) Total de formaciones por temporada
+  
+Premier League
+```{r c5,cache=T}
+pform3 <- ggplot(t2[which(t2$league_id=="Premier League"),], aes(x = form)) + 
+        geom_bar(stat = "count", fill="lightseagreen") + 
+        coord_flip()
+p3 = pform3 + facet_wrap(~ season, nrow=2) + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        theme(axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              strip.text.x = element_text(face="bold", size=10),
+              strip.background = element_rect(fill="ghostwhite"),
+              legend.position="none") +
+        scale_x_discrete(limits=t(ft[10:21,1])) +
+        ggtitle(label="Formaciones iniciales Premier League por temporada", subtitle = "Dataset: 2837 partidos de Premier League entre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p3
+```
+BBVA
+```{r c6,cache=T}
+pform4 <- ggplot(t2[which(t2$league_id=="BBVA"),], aes(x = form)) + 
+        geom_bar(stat = "count", fill="tomato2") + 
+        coord_flip()
+p4 = pform4 + facet_wrap(~ season, nrow=2) + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        theme(axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              strip.text.x = element_text(face="bold", size=10),
+              strip.background = element_rect(fill="ghostwhite"),
+              legend.position="none") +
+        scale_x_discrete(limits=t(ft[10:21,1])) +
+        ggtitle(label="Formaciones iniciales liga BBVA por temporada", subtitle = "Dataset: 2618 partidos de liga BBVA entre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p4
+```
+Serie A
+```{r c7,cache=T}
+pform5 <- ggplot(t2[which(t2$league_id=="Serie A"),], aes(x = form)) + 
+        geom_bar(stat = "count", fill="mediumpurple") + 
+        coord_flip()
+p5 = pform5 + facet_wrap(~ season, nrow=2) + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        theme(axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              strip.text.x = element_text(face="bold", size=10),
+              strip.background = element_rect(fill="ghostwhite"),
+              legend.position="none") +
+        scale_x_discrete(limits=t(ft[10:21,1])) +
+        ggtitle(label="Formaciones iniciales liga Serie A por temporada", subtitle = "Dataset: 2652 partidos de liga Serie A entre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p5
+```
+Bundesliga
+```{r c8,cache=T}
+pform6 <- ggplot(t2[which(t2$league_id=="Bundesliga"),], aes(x = form)) + 
+        geom_bar(stat = "count", fill="olivedrab3") + 
+        coord_flip()
+p6 = pform6 + facet_wrap(~ season, nrow=2) + theme_bw() +
+        labs(x="Formaciones", y="Número de partidos") +
+        theme(axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+              strip.text.x = element_text(face="bold", size=10),
+              strip.background = element_rect(fill="ghostwhite"),
+              legend.position="none") +
+        scale_x_discrete(limits=t(ft[10:21,1])) +
+        ggtitle(label="Formaciones iniciales Bundesliga por temporada", subtitle = "Dataset: 2309 partidos de liga Bundesliga entre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+p6
+```
+  
+En cada gráfico podemos ver para cada la liga la respectiva evolución de las formaciones utilizadas a medida que pasan las temporadas (entre 2008/2009 y 2015/2016).
+  
+Para la Premier se observa que en las primeras 4 temporadas se usaba principalmente 4-4-2 y 4-5-1, pero luego se dio paso a 4-2-3-1.
+
+En BBVA no se advierten grandes variaciones, manteniéndose el 4-2-3-1 siempre como la formación inicial más frecuente.
+
+Para la Serie A se tienen varias modificaciones en el tiempo, presentando como formaciones más utilizadas el 4-3-1-2 (2008/2010), el 4-4-2 (2010/2012), el 3-5-2 (2012/2013) y finalmente el 4-3-3 (2013/2016). En todas las temporadas se presenta un número importante de casos 3-5-2 y particularmente en las últimas 4 seasons aparece también el 3-6-1. Se aprecia una alta variedad de formaciones no solo al comparar temporadas sino que también dentro de una misma temporada.
+  
+En Bundesliga se observa cómo el 4-2-3-1 ha estado presente en todo el periodo estudiado y con alta participación. También cómo los esquemas del tipo 4-1-3-2 y 4-2-2-2 fueron desapareciendo y además cómo apareció en los últimos años el 4-1-4-1.
+
+Los resultados de este análisis conversan de buena forma con los gráficos de los primeros análisis.
+
+*** 
+
+###### 4) Distribución de resultados por formación
+Equipos Locales
+```{r c9,cache=T}
+Locales$resultado <- factor(Locales$resultado, levels = c("V", "E", "L"))
+tableL = as.data.frame(table(Locales$resultado,Locales$form))
+match = as.data.frame(amatch(t(ft[6:21,1]), tableL$Var2))
+target=""
+for (i in nrow(match):1){
+        target <- c(target,match[i,1],match[i,1]+1,match[i,1]+2)
+}
+target = target[-1]
+L = tableL[target,]
+
+keeping.order <- function(data, fn, ...) { 
+        col <- ".sortColumn"
+        data[,col] <- 1:nrow(data) 
+        out <- fn(data, ...) 
+        if (!col %in% colnames(out)) stop("Ordering column not preserved by function") 
+        out <- out[order(out[,col]),] 
+        out[,col] <- NULL 
+        out 
+} 
+
+L = keeping.order(L, ddply,.(Var2), transform, percent = Freq/sum(Freq) * 100)
+L = keeping.order(L, ddply,.(Var2), transform, pos = (cumsum(Freq) - 0.5 * Freq))
+L$label = paste0(sprintf("%.0f", L$percent), "%")
+tl <- keeping.order(L, ddply,.(Var2), transform, tl = sum(Freq))
+
+pform7 <- ggplot(L, aes(x = factor(Var2, levels=rev(unique(Var2))), y = percent, fill = Var1)) +
+        geom_bar(position = position_stack(), stat = "identity", width = .7, alpha=0.6) +
+        geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 3.5) +
+        coord_flip()
+p7 = pform7 + theme_bw() +
+        labs(x="Formación equipo Local", y="% de resultados") +
+        theme(legend.background = element_rect(),
+              legend.title = element_text(size=10, face="bold"),
+              legend.text = element_text(size = 10, face = "bold"),
+              legend.position="top",
+              legend.justification=c(0,0),
+              axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0))) +
+        scale_x_discrete(limits=t(ft[6:21,1])) +
+        guides(fill=guide_legend(title=NULL)) +
+        scale_fill_brewer(palette = "Set2", breaks=c("L","E","V"), labels=c("Ganó Local", "Empate", "Ganó Visita")) +
+        ggtitle(label="Resultados según formación inicial de equipo Local", subtitle = "Dataset: 10746 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016. Equipos Locales")
+
+library(grid)
+library(gtable)
+for (i in 1:16)  {
+        p7 <- p7 + annotation_custom(
+                grob = textGrob(label = tl$tl[i*3], hjust = 0, gp = gpar(cex = 0.7)),
+                ymin = 100.5,      # Vertical position of the textGrob
+                ymax = 100.5,
+                xmin = 17-i,         # Note: The grobs are positioned outside the plot area
+                xmax = 17-i)
+}
+p7 <- p7 + annotation_custom(
+        grob = textGrob(label = "Número total\npartidos", hjust = 0, gp = gpar(cex = 0.7)),
+        ymin = 99,      # Vertical position of the textGrob
+        ymax = 99,
+        xmin = 17.5,         # Note: The grobs are positioned outside the plot area
+        xmax = 17.5)
+gt <- ggplot_gtable(ggplot_build(p7))
+gt$layout$clip[gt$layout$name == "panel"] <- "off"
+grid.draw(gt)
+```
+Equipos Visitas
+```{r c10,cache=T}
+Visitas$resultado <- factor(Visitas$resultado, levels = c("V", "E", "L"))
+
+tableV = as.data.frame(table(Visitas$resultado, Visitas$form))
+matchV = as.data.frame(amatch(t(ft[6:21,1]), tableV$Var2))
+target=""
+for (i in nrow(matchV):1){
+        target <- c(target,matchV[i,1],matchV[i,1]+1,matchV[i,1]+2)
+}
+target = target[-1]
+V = tableV[target,]
+
+V = keeping.order(V, ddply,.(Var2), transform, percent = Freq/sum(Freq) * 100)
+V = keeping.order(V, ddply,.(Var2), transform, pos = (cumsum(Freq) - 0.5 * Freq))
+V$label = paste0(sprintf("%.0f", V$percent), "%")
+tlV <- keeping.order(V, ddply,.(Var2), transform, tlV = sum(Freq))
+
+pform8 <- ggplot(V, aes(x = factor(Var2, levels=rev(unique(Var2))), y = percent, fill = Var1)) +
+        geom_bar(position = position_stack(), stat = "identity", width = .7, alpha=0.6) +
+        geom_text(aes(label = label), position = position_stack(vjust = 0.5), size = 3.5) +
+        coord_flip()
+p8 = pform8 + theme_bw() +
+        labs(x="Formación equipo Visita", y="% de resultados") +
+        theme(legend.background = element_rect(),
+              legend.title = element_text(size=10, face="bold"),
+              legend.text = element_text(size = 10, face = "bold"),
+              legend.position="top",
+              legend.justification=c(0,0),
+              axis.text.x = element_text(vjust=0.5, size=10), 
+              axis.text.y = element_text(vjust=0.5, size=10), 
+              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0))) +
+        scale_x_discrete(limits=t(ft[6:21,1])) +
+        guides(fill=guide_legend(title=NULL)) +
+        scale_fill_brewer(palette = "Set2", breaks=c("L","E","V"), labels=c("Ganó Local", "Empate", "Ganó Visita")) +
+        ggtitle(label="Resultados según formación inicial de equipo Visita", subtitle = "Dataset: 10742 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016. Equipos Locales")
+
+for (i in 1:16)  {
+        p8 <- p8 + annotation_custom(
+                grob = textGrob(label = tlV$tlV[i*3], hjust = 0, gp = gpar(cex = 0.7)),
+                ymin = 100.5,      # Vertical position of the textGrob
+                ymax = 100.5,
+                xmin = 17-i,         # Note: The grobs are positioned outside the plot area
+                xmax = 17-i)
+}
+p8 <- p8 + annotation_custom(
+        grob = textGrob(label = "Número total\npartidos", hjust = 0, gp = gpar(cex = 0.7)),
+        ymin = 99,      # Vertical position of the textGrob
+        ymax = 99,
+        xmin = 17.5,         # Note: The grobs are positioned outside the plot area
+        xmax = 17.5)
+gtv <- ggplot_gtable(ggplot_build(p8))
+gtv$layout$clip[gtv$layout$name == "panel"] <- "off"
+grid.draw(gtv)
+```
+  
+Ninguna de las formaciones iniciales de un equipo local está asociada a un resultado ganador en más del 50% de los partidos, pero la gran mayoría se relaciona con un equipo local que gana más del 40% de los casos, excepto las formaciones más defensivas: 4-5-1 (39%), 5-4-1 (35%) y 5-3-2 (30%), por lo que se observa la tendencia de que "un equipo local con formación defensiva tiene menos probabilidades de ganar".
+  
+Por su parte, para los equipos visita se observan dos tendencias: A) cuando la visita usa una formación defensiva, principalmente 5-3-2 y 5-4-1, el equipo local gana en el 71% y 69% de los casos respectivamente; y B) Las mejores formaciones de visita para obtener una victoria corresponden a formaciones ofensivas o con 3 delanteros: 4-1-2-3 (48%) y 4-2-1-3 (44%).
+  
+Para ambas observaciones vale decir que en algunos de los resultados no se tienen muchos casos de análisis puesto que en pocos partidos se usan estas formaciones, por lo que las tendencias observadas deberían testearse como hipótesis estadísticas más formales. Un caso con más partidos para A) es el de formación de visita defensiva igual a 4-5-1 donde el equipo local gana en el 52% de los partidos, mientras que para B) el caso de formación visita 4-3-3 con resultado donde gana vista en un 36% de los partidos.
