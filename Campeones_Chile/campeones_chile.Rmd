@@ -1,0 +1,159 @@
+---
+title: "Ranking de Campeones Primera División Fútbol Profesional Chile"
+description: ''
+author: "Ismael Gómez"
+lang: es
+date: '2017-05-20'
+output:
+  html_document: default
+  pdf_document: default
+draft: false
+image: false
+menu: ''
+share: yes
+slug: campeones_chile
+tags:
+- Campeones
+- Primera División
+- Chile
+categories: ["Chile"]
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=7, fig.height=5, echo=F, warning=FALSE, message=FALSE)
+```
+
+```{r library}
+library(png)
+library(stringdist)
+library(ggplot2)
+library(cowplot)
+```
+
+```{r functions}
+add_image_strip <- function(plot, image_list, xmin = 0.074, xmax = 0.984, y = 0.03, height = 0.07)
+{
+        xstep = (xmax-xmin)/length(image_list)*1
+        for (img in image_list)
+        {
+                g <- grid::rasterGrob(img, interpolate=TRUE)
+                plot <- plot + annotation_custom(g, xmin, xmax = xmin + xstep, ymin = y, ymax = y + height)
+                xmin <- xmin + xstep
+        }
+        plot
+}
+```
+
+```{r read_process}
+tabla <- read.csv("tabla_primera_chile.csv", encoding = "latin", stringsAsFactors = F)
+tabla[,14] <- as.numeric(unlist(tabla[,14]))
+data  <- tabla[which(tabla[,14]>=1), c(2,4,14)]
+names(data)[2:3] <- c('N_Torneos', 'N_Campeonatos')
+
+data[which(data$Club=="Green Cross"), 'N_Torneos'] <- 60
+data[which(data$Club=="Green Cross"), 'Club'] <- "Deportes Temuco"
+
+data[which(data$Club=="Universidad de Chile"), 'N_Campeonatos'] <- 18
+data$N_Torneos[c(1:9, 11, 15)] <- data$N_Torneos[c(1:9, 11, 15)] + 1
+data$rate <- data$N_Campeonatos / data$N_Torneos
+
+num = nrow(data)
+pics  <- vector(mode="list", length=num)
+teams <- data$Club[order(-data$N_Campeonatos, data$Club)]
+image.file <- dir("escudos2", full.names=F)
+m <- amatch(teams, image.file, method='cosine', maxDist = 0.5)
+image.file <- image.file[m]
+image.file <- paste0('escudos2/', image.file)
+
+for(i in 1:num) {
+        pics[[i]] <- readPNG(image.file[i])
+}
+names(pics) <- sub(".png","",sub("escudos2[/]","",image.file))
+```
+
+Universidad de Chile esta tarde de hoy sábado 20 de mayo de 2017 se coronó campeón de la versión número 100 del campeonato de primera división del fútbol profesional chileno, logrando su estrella N°18. 
+
+El equipo #DatoFútbol, junto con felicitar a todos sus jugadores, cuerpo técnico-médico e hinchas por esta nueva alegría, a modo de resúmen de estos 100 torneos jugadod en ya casi 85 años, desde la primera versión por allá en 1933 hasta esta primera mitad de 2017, quiso actualizar el ranking de campeones de la Primera División con la siguiente gráfica, a partir de los datos publicados en [Wikipedia](https://es.wikipedia.org/wiki/Primera_División_de_Chile#Campeones) (considerar que en nuestra gráfica quienes tienen igual número de campeonatos solo están ordenados alfabéticamente, sin un criterio adicional):
+
+```{r plot1}
+# campeones
+b<-ggplot(data, aes(x=reorder(Club, -N_Campeonatos), y=N_Campeonatos)) + 
+        geom_bar(stat="identity", col="darkblue", fill="azure2", width=0.9)
+b = b + 
+        theme_bw() + 
+        theme(#axis.text.x = element_text(angle=90, vjust=0.5, size=10), 
+                axis.text.x= element_blank(),
+                axis.text.y = element_text(vjust=0.5, size=10), 
+                axis.title.x = element_blank(), 
+                axis.title.y = element_text(face="bold", size=12, margin=margin(0,15,0,0))) +
+        geom_text(aes(label = round(N_Campeonatos,1)), vjust=-0.5, colour="black", 
+                  position = position_dodge(1.1), size=3, fontface="bold") + 
+        labs(x="Equipos", y="Número de campeonatos") +
+        scale_y_continuous(expand = c(0.11,0)) +
+        #coord_cartesian(ylim=c(20,28)) +
+        ggtitle("Número de campenatos ganados en Primera División Chile \n[1933 - Clausura 2017]")
+plot_b <- ggdraw(b)
+add_image_strip(plot_b, image_list=pics, xmin = 0.1, xmax = 0.984)
+```
+
+Como ha sido la tónica desde hace años en este ranking, Colo-Colo tiene un claro liderato con sus 31 estrellas, con lo que casi le alcanza (porque le faltan 5 torneos) para duplicar y triplica a sus más cercanos perseguidores (Universidad de Chile con 18 y Universidad Católica con 12). Cabe destacar que los 3 llamados "equipos grandes" de Chile juntos se han llevado el 61% de las copas jugadas.
+
+Se observa que la mayoría de los campeones son de la Región Metropolitana (Colo-Colo, Universidad de Chile, Universidad Católica, Unión Española, Audax Italiano, Magallanes, Palestino y Santiago Morning), correspondiente al 50% de los 16 equipos que han campeonado al menos una vez, y al 79% de los 100 campeonatos jugados. 
+
+Los campeones de otras regiones son: Cobreloa de la Región de Antofagasta con 8 campeonatos; Everton, Santiago Wandereres y Unión San Felipe de la Región de Valparaíso con 4, 3 y 1 campeonato respectivamente; Huachipato de la Región del Bío-Bío con 2; y O'higgins de la Región de Bernardo O'higgins con 1 estrella. Consideramos también el título obtenido por Green Cross en 1945 para Deportes Temuco (ambos de la Región de la Araucanía) dada su fusión en 1965.
+
+*** 
+
+Ahora bien, también podemos considerar un índice que represente la efectividad para ganar campeonatos en función de los torneos jugados. Así podemos ver cómo cambia el ranking con la razón "campeonatos ganados/jugados" en la siguiente visualización:
+
+```{r plot2}
+# rate
+
+pics2  <- vector(mode="list", length=num)
+teams2 <- data$Club[order(-data$rate, data$Club)]
+image.file2 <- dir("escudos2", full.names=F)
+m2 <- amatch(teams2, image.file2, method='cosine', maxDist = 0.5)
+image.file2 <- image.file2[m2]
+image.file2 <- paste0('escudos2/', image.file2)
+
+for(i in 1:num) {
+        pics2[[i]] <- readPNG(image.file2[i])
+}
+names(pics2) <- sub(".png","",sub("escudos2[/]","",image.file2))
+
+b2 <-ggplot(data, aes(x=reorder(Club, -rate), y=rate)) + 
+        geom_bar(stat="identity", col="darkblue", fill="azure2", width=0.9)
+b2 = b2 + 
+        theme_bw() + 
+        theme(#axis.text.x = element_text(angle=90, vjust=0.5, size=10), 
+                axis.text.x= element_blank(),
+                axis.text.y = element_text(vjust=0.5, size=10), 
+                axis.title.x = element_blank(), 
+                axis.title.y = element_text(face="bold", size=12, margin=margin(0,15,0,0))) +
+        geom_text(aes(label = round(rate,3)), vjust=-0.5, colour="black", 
+                  position = position_dodge(1.1), size=2.5, fontface="bold") + 
+        geom_text(aes(label = paste0('(',N_Torneos,')')), vjust=1.2, colour="blue", 
+                  position = position_dodge(1.1), size=2.5, fontface="bold") + 
+        labs(x="Equipos", y="Razón de campeonatos ganados/jugados") +
+        scale_y_continuous(expand = c(0.11,0)) +
+        #coord_cartesian(ylim=c(20,28)) +
+        ggtitle("Razón de campenatos ganados/jugados en Primera División Chile \n[1933 - Clausura 2017]")
+plot_b2 <- ggdraw(b2)
+add_image_strip(plot_b2, image_list=pics2, xmin = 0.105, xmax = 0.984)
+
+```
+  
+  Además de la razón campeonatos ganados/jugados que se muestra arriba de cada barra, abajo y entre paréntesis se presenta el número de torneos jugados por cada equipo en Primera División, lo que aporta a la interpretación, puesto que quienes avanzan en este ranking en comparación con al anterior lo hacen debido a que han aprovechado mejor sus participaciones en primera división para campeonar. Cabe destacar que Colo-Colo es el único que ha jugado los 100 torneos dada su antigüedad en el fútbol criollo y porque no ha descendido nunca a Primera B o Segunda División.
+  
+    Se puede apreciar que Colo-Colo y Universidad de Chile mantienen sus puestos, con índices de 0.31 y 0.19 respectivamente. Esto puede llevarse a otra palabras como por ejemplo que Colo-Colo tiende a ganar aproximadamente 1 de cada 3 torneos de los que juega, y la U. de Chile lo hace 1 vez cada 5.
+  
+  Por otro lado, Cobreloa en este ranking supera a la Universidad Católica, quitándole el 3er lugar, así como lo hace Magallanes con Unión Española y Unión San Felipe con Palestino. Premio a la efectividad.
+  
+  Sin embargo, si bien estos avances en el ranking se deben a mayor efectividad, no hay que dejar de tener presente los números absolutos de los torneos jugados en cada caso, ya que para algunos justamente se tienen menos participaciones, lo que es debido principalmente a varios torneos fuera de Primera División (muchos descensos o varios años fuera de Primera). 
+  
+  Lo anterior llevado a un caso extremo: si un equipo sube por primera vez a Primera División y sale campeón inmediatamente, pero al año siguiente baja nuevamente, tendría un índice de 0.5 y sería el primero del ranking. Por supuesto que no tendría mucho sentido premiar o alabar eso.
+  
+Esperamos mantener este ranking actualizado torneo a torneo e ir agregando estadísticas más detalladas al respecto. 
+
+El código y los datos utilizados los pueden revisar en este enlace [Github](https://github.com/Bustami/DatoFutbol/tree/master/Campeones_Chile). Los escudos de los equipos fueron descargados del sitio oficial de la [ANFP](http://anfp.cl).
