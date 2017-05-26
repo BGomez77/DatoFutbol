@@ -1,0 +1,215 @@
+---
+title: "¿Qué tanto importa la plata para rendir en Copa Libertadores?"
+description: ''
+author: "Ismael Gómez"
+lang: es
+date: '2017-05-26'
+output:
+  html_document: default
+  pdf_document: default
+draft: false
+image: false
+menu: ''
+share: yes
+slug: libertadores_valor_planteles_2017
+tags:
+- Copa Libertadores
+- Clasificados
+- Valor planteles
+categories: ["Conmebol"]
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=7, fig.height=5, echo=F, warning=FALSE, message=FALSE)
+```
+
+```{r library}
+library(stringdist)
+library(ggplot2)
+library(ggrepel)
+```
+
+```{r read_process}
+data <- read.csv("transfermrkt_liberta_2017.csv", sep=';', head=T, stringsAsFactors = F, encoding = 'latin')
+data$Market.value <- gsub(' .*', '', data$Market.value)
+data$Market.value <- as.numeric(gsub(',', '.', data$Market.value))
+data$Market.value <- data$Market.value #* 1000000
+data$Market.value_USD <- data$Market.value * 1.1230  #promedio Mar-May oanda.com
+
+result <- read.csv("resultados_liberta_2017.csv", sep=',', head=T, stringsAsFactors = F, encoding = 'latin')
+result <- result[which(result$PJ!='PJ'), c(3:ncol(result))]
+row.names(result) <- NULL
+names(result)[1:2] <- c('Team', 'Puntos')
+result$Clasificado <- as.factor(rep(c(T, T, F, F), each=1))
+
+m <- amatch(result$Team, data$Club, method='cosine', maxDist = 0.45)
+w<-cbind(result$Team,data$Club[m])
+# Problemas: Libertad, Lanús, Gremio
+data$Club <- gsub('Club Libertad Asunción','Libertad', data$Club)
+data$Club <- gsub('Club Atlético Lanús','Lanús', data$Club)
+data$Club <- gsub('Gr[ê]mio Foot[-]Ball Porto Alegrense','Gremio', data$Club)
+m <- amatch(result$Team, data$Club, method='cosine', maxDist = 0.45)
+z <- cbind(result, data[m,])
+row.names(z) <- NULL
+z[, 2:9] <- as.numeric(unlist(z[, 2:9]))
+#levels(z$Clasificado)
+levels(z$Clasificado) <- c("No Clasificado", "Clasificado")
+
+```
+
+Deportes Iquique quedó fuera de la fase de grupos de la Copa Libertadores 2017, lo que sumado a la eliminación de Universidad Católica días atrás, agotó las opciones de seguir avanzando para los equipos chilenos. 
+
+En el último tiempo en distintos medios de comunicación y redes sociales se ha hablado bastante sobre las posibles causas del "pobre rendimiento internacional de los equipo chilenos", aludiendo al negativo impacto que tendría, entre varias otras cosas más, el formato de torneo corto, el límite de contrataciones, el límite de extranjeros por equipo, la falta de experiencia y/o jerarquía, etc.
+
+En #DatoFútbol quisimos darle una mirada a otra variable que posiblemente también afecta, y a la que pareciera que pocas veces se le considerara importante: La plata. A continuación la descripción de los datos utilizados.
+
+#### Los datos
+Descargamos los "Valores en el mercado", en millones de euros, para la plantilla de cada uno de los 32 planteles que jugaron la fase de grupos de esta edición de la Copa Libertadores, desde el sitio [Transfermarkt.com](https://www.transfermarkt.com/copa-libertadores/teilnehmer/pokalwettbewerb/CLI/saison_id/2016#subnavi) (consultado el viernes 26 de mayo de 2017). Si bien el sitio [Peloteros](http://peloteroschile.cl/cuanto-valen-los-planteles-la-conmebol-libertadores-2017/) había publicado un listado en enero de este año, creemos correcto trabajar con los valores más actualizados.
+
+Por otro lado, tomamos las tablas de posiciones finales de cada grupo desde el sitio de la [Conmebol](http://www.conmebol.com/es/copa-libertadores-2017/posiciones), considerando principalmente los puntos obtenidos, la diferencia de gol y su posición en la tabla para saber si un equipo clasificó o no.
+
+#### ¿Por qué solo la fase de grupos?
+Por supuesto que por ser la etapa actual de la copa, pero también porque es lo más cercano, guardando las proporciones, a una liga: cada equipo tiene 6 partidos, 3 de local y 3 de visita, nos permite usar la variable Puntos obtenidos, y además, citando a Jonathan Wilson desde su excelente y super recomendable libro [La pirámide invertida](https://www.buscalibre.cl/libro-la-piramide-invertida-historia-de-la-tactica-en-el-fubtol/9789873752001/p/46243904) "En el curso de una temporada de liga, la suerte, las rachas, las lesiones, los errores de los jugadores y los errores de los árbitros, tienden a promediarse; si no de modo perfecto, sí mucho, mucho más que... [en una llave de dos partidos ida y vuelta]". (lo del cochete cuadrado en nuestro, pero sirve!).
+
+*** 
+
+#### Tendencia lineal  
+Bien, veamos qué sale de todo esto. Primero veremos la tendencia lineal entre el valor en el mercado y los puntos obtenidos:
+
+```{r plot1}
+# tendencia lineal
+fit <- lm(Puntos ~ Market.value, data = z)
+#summary(fit)
+
+p2 <- ggplot(z, aes(x=Market.value, y=Puntos)) +
+        geom_point(shape=16) + geom_smooth(method=lm) +
+        scale_y_continuous(name = "Puntos obtenidos en fase de grupos") +
+        scale_x_discrete(limits=seq(10,80,10), name = "Valor en el mercado [Millones de euros]") +
+        #ggtitle("Regresión Lineal Viento v/s Ruido (Delta con-sin)") +
+        annotate("text", x=60, y=5, label = "R^2==0.44", parse=T) +
+        annotate("text", x=60, y=3, label = "alpha==5.43443", parse=T) +
+        annotate("text", x=60, y=1, label = "beta==0.11784", parse=T) +
+        theme_bw()
+p2
+```
+
+Se tiene una tendencia lineal con R^2 de 0.44, con residuales que fluctúan entre -6.2 y 4.8. Se observa que el modelo de regresión lineal se ajusta muy bien para valores de mercado altos (mayores a 30 millones de euros), donde el 80% de los datos está dentro del área del intervalo de confianza del 95%. En contraste, a medida que disminuyen los valores del mercado, la aproximación es menos certera debido a la variabilidad de rendimiento para equipos "baratos". Por ejemplo, el modelo asume que independientemente de tu valor en el mercado ya tienes 5.43 puntos!! De todas maneras, a simple vista, la plata y la cantidad de puntos obtenidos tienen una correlación, al menos desde cierto valor en el mercado hacia arriba.
+
+*** 
+
+#### Valor en el mercado v/s Puntos obtenidos en fase de grupos
+La gráfica a continuación es un scatterplot "Valor en el mercado v/s Puntos obtenidos". El tamaño de los círculos indica la diferencia de gol, es decir, mientras más grande el círculo mejor diferencia de gol. Y por su parte, el color mapea si el equipos clasificó o no. En rojo los eliminados y en azul los clasificados.
+
+```{r plot2}
+# valor vs puntos
+fill = c("violetred1", "steelblue")
+p <- ggplot(z, aes(x = Market.value, y = Puntos, colour = Clasificado, size = DF)) +  #, shape = Proyecto)
+        geom_point(alpha = 4/10) +
+        scale_shape_manual(values=c(23, 21)) +
+        #ggtitle("Viento v/s Ruido (Delta con-sin)") +  labs(x = "Delta Viento [m/s]", y = "Delta NPSeq [dB]") +
+        labs(x = "Valor de plantel en el mercado [Millones de EUR]", y = "Puntos Fase de Grupos Libertadores 2017") +
+        #scale_size(range = c(-15, 15)) +
+        scale_colour_manual(values = fill) +
+        guides(fill=guide_legend(override.aes=list(colour=c(D="steelblue", N="violetred1")))) +
+        theme_bw() + theme(legend.position = "bottom", legend.direction = "horizontal") +
+        coord_cartesian(xlim=c(0, 80), ylim=c(0,15)) +
+        scale_x_discrete(limits=seq(0,80,5)) +
+        scale_y_discrete(limits=seq(0,15,1)) +
+        geom_text_repel(aes(label = Team), size=2.2, col="black")
+        #ifelse(Team==c('Deportes Iquique', 'Wilstermann', 'The Strongest'), as.character(Team),'')
+        #geom_smooth(method=lm)
+        #labs(fill = "Periodo", size = "Delta T[?C] ") +
+        #theme(legend.box = "vertical", legend.key.size = unit(0.01, "cm"))
+        #theme(legend.box = "vertical", plot.margin = unit(c(0.2, 0, -0.2, 0), units = "cm"))
+p
+```
+
+Se pueden distinguir al menos 3 conjuntos de equipos con tendencias diferentes. En primer lugar los equipos con un valor entre 0 y 15 millones de euros (12 equipos), de los cuales clasificaron solo 3, equivalente a un 25%. Cabe mencionar que en esos 3 clasificados están los equipos bolivianos The Strongest y Wilstermann, ambos con 9 puntos, los que ganan sus puntos preferentemente de local con la renombrada "ventaja por jugar en altura". El otro caso es Guaraní, quien compartió grupo con Deportes Iquique (el único equipo que aun obteniendo 10 puntos no clasificó), Gremio y Zamora. Todos en ese grupo, excepto Gremio, están bajo los 10 millones de euros, y dado que al menos uno de ellos debía clasificar, se transforma en una excepción de acuerdo a la conformación del grupo.
+
+Otro conjunto de equipos es el que contiene a los de valor mayor a 40 o 45 millones de euros (6 equipos), de los cuáles 5 clasificaron, correspondiente al 83%. La única excepción fue la eliminación de Flamengo en la última fecha, con la clasificación de San Lorenzo y Atlético Paranaense. Dado que ese grupo (del otro equipo chileno Universidad Católica) fue llamado uno de los "grupos de la muerte", era seguro que uno de los equipos "caros" quedara fuera.
+
+Y tenemos un conjunto de equipos con valores en el mercado intermedios (entre 15 y 40 millones de euros), donde los puntos y clasificados se distribuyen de manera menos predecible. De un total de 14 equipos, clasificaron 8: 57%.
+
+La plata al parecer también influye en la clasificación, al menos para equipos que valen menos de 15 millones de euros o para los que valen más de 40 millones de euros.
+  
+*** 
+
+#### ¿Con cuántos puntos se clasifica?
+
+Muchas veces se hace el ejercicio de arrojar un número de puntos necesarios para "asegurar" la clasificación, ya sea para clasificatorias mundialistas o para Copa Libertadores. Si bien se podrían tomar más datos históricos para robustecer los resultados, solo consideraremos esta edición de la copa para ver qué tenemos. A continuación dos histogramas con los puntos obtenidos tanto para equipos clasificados como para no clasificados:
+
+```{r plot3}
+# histogramas
+ggplot(data=z, aes(Puntos)) + 
+        geom_histogram(aes(fill=..count..), breaks=seq(-1, 13, by = 1)) +
+        facet_grid(~ Clasificado) + theme_bw() +
+        labs(x="Puntos obtenidos", y="Cantidad de equipos") + 
+        scale_x_discrete(limits=seq(0,13,1)) +
+        #axis.text.x = element_text(vjust=0.5) +
+        guides(fill=guide_legend(title="Cantidad de equipos")) +
+        theme(strip.background = element_rect(fill="ghostwhite"))
+```
+  
+Para el caso de los equipos que no clasificaron, en el extremo superior tenemos un solo caso con 10 puntos (Deportes Iquique) y tres con 9 puntos (Independiente de Medellín, Estudiantes de la Plata y Flamengo). Por su parte, para los equipos clasificados, en el extremo inferior se tiene un caso con 8 puntos (Club Nacional), dos casos con 9 puntos (The Strongest y Wilstermann) y 5 equipos con 10 puntos. 
+
+Claramente el corte está entre los 9 y 10 puntos, dependiendo del grupo que le haya tocado a cada equipo. Para esta edición, podemos decir que de los 14 equipos que obtuvieron al menos 10 puntos, clasificaron 13 (93%), mientras que par el total de  18 equipos que obtuvieron 9 o menos puntos, no clasificaron 15 (83%).
+
+Con esto toma fuerza la frase: debes ganar tus 3 partidos de local y sacar al menos un empate afuera para "asegurar" la clasificación.
+  
+*** 
+
+#### Valores de ligas principales por país
+Bien, nos desviamos un poco de la variable plata en el úlimo análisis, pero para finalizar el post retomaremos el tema incluyendo el valor en el mercado de las ligas completas, es decir considerando todos los planteles de la división principal de cada país. También los datos fueron descargados del sitio Transfermakt.com. A continuación un boxplot con todas las ligas excepto Paraguay y Bolivia cuyos datos no están disponibles. Se agrega el promedio con puntos rojos.
+
+```{r plot4}
+#ligas
+ligas <- read.csv("transfermrkt_liberta_2017_ligas_detalle.csv", sep=',', head=T, stringsAsFactors = F, encoding = 'latin')
+ligas$Total.market.value <- gsub(' .*', '', ligas$Total.market.value)
+ligas$Total.market.value <- as.numeric(gsub(',', '.', ligas$Total.market.value))
+#data$Market.value <- data$Market.value #* 1000000
+
+prom <- aggregate(Total.market.value ~ Country, data=ligas, FUN=mean)
+names(prom) <- c('Pais', 'Mean')
+bp <- ggplot(data = ligas, aes(x = reorder(Country, -Total.market.value), y = Total.market.value)) + 
+      geom_boxplot(col="darkblue", width = 0.8) + theme_bw() +
+      labs(x="Liga (País)", y="Valor en el mercado [millones de euros]") + 
+     geom_point(data = prom, aes(x=reorder(Pais, -Mean), y=Mean), color = 'red')
+     #ggtitle("Boxplot de edades por equipo \nPlanteles Clausura 2017 Primera A Chile ")
+bp
+
+```
+
+Queda claro cuáles son las ligas de mayor valor en el mercado, escapándose Brasil con un promedio de aproximadamnte 40 millones de euros, casi duplicando a su perseguidor más cercano (Argentina, que tiene dos outliers arriba que le hacen subir el promedio: River Plate y Boca Juniors).
+
+Chile está en el grupo de los más bajos, menores a 10 millones de euros promedio, junto con Uruguay, Perú y Venezuela.
+
+Entonces, ¿De qué país son los equipos clasificados a octavos de final?:
+
+- 6 de 8 participantes de Brasil (75%)
+- 4 de 6 participantes de Argentina (67%)
+- 2 de 2 participantes de Ecuador (100%)
+- 2 de 3 participantes de Bolivia (67%)
+- 1 de 2 participantes de Uruguay (50%)
+- 1 de 2 participantes de Paraguay (50%)
+
+Por supuesto que el número absoluto de clasificados está sesgado por la cantidad de equipos que participan por cada país, por lo que debemos considerar principalmente el % de clasificados del total de participantes, entre paréntesis arriba.
+
+Entre los países que tuvieron rendimiento internacional (hasta ahora) mayor al 50%, se encuentran 3 de las ligas más caras: Brasil, Argentina y Ecuador. La excepción solo es Bolivia.
+
+Desde el punto de vista del dinero, el fracaso mayor fue para los equipos colombianos, los que tienen la 3era liga más cara y sus representantes en la copa no están bajo los 20 millones de euros, pero ninguno clasificó a octavos de final.
+  
+*** 
+
+#### Conclusiones
+En resumen, hemos incorporado la variable plata a la discusión, encontrando interesantes relaciones con el rendimiento internacional, al menos para esta edición de la Copa Libertadores. Cuando los comentaristas deportivos y los hinchas en general traten de buscar una causa respecto al "mal rendimiento internacional" de los equipos chilenos, e #DatoFútbol creemos que deberían darle un peso importante al valor económico de los planteles. 
+
+Deportes Iquique estuvo cerca, enfrentando a 2 equipos de su mismo nivel económico. Si hubiese clasificado habría sido solo una de las 3 excepciones, a costa de Guaraní que en su defecto no habría clasificado. Por su parte, Universidad Católica tenía poca chances de pasar a octavos mirando la diferencia entre el valor de su plantilla y la de sus rivales (diferencia mayor a 20 millones de euros con Atlético Paranaense, su rival más cercano).
+
+Por supuesto que el valor en el mercado es un reflejo de la calidad de los jugadores, así como de su trayectoria y nivel de competitividad, entre otros. Y probablemente está también directamente reflejado con lo que algunos llaman "jerarquía" y "experiencia".
+
+Así que en vez de darle tanta vuelta al asunto, si queremos más éxitos internacionales a nivel de clubes, a los equipos chilenos lo hacemos jugar de local en la altura, apostando a ser la excepción como los bolivianos, o empezamos a meter las manos en los bolsillos y contratamos jugadores de mayor valor en el mercado.
+  
+  
+  
+Nota: El código y los datos utilizados se pueden obtener en este enlace [Github](https://github.com/Bustami/DatoFutbol/tree/master/Valores_Libertadores_2017).
