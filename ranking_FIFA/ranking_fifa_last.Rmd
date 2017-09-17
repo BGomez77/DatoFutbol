@@ -1,0 +1,52 @@
+---
+title: "Ranking FIFA histórico [Actualizado 09-2017]"
+description: ''
+author: "Ismael Gómez"
+lang: es
+date: '2017-09-17'
+output:
+  html_document: default
+  pdf_document: default
+draft: false
+image: false
+menu: ''
+share: yes
+slug: ranking_fifa_historico_last
+tags:
+- Chile
+- Ranking FIFA
+- Rusia 2018
+categories: ["Varios"]
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=5, echo=F, warning=FALSE, message=FALSE)
+```
+
+Actualizamos nuestra aplicación para visualizar el ranking FIFA histórico ([post inicial](http://datofutbol.cl/ranking_fifa_historico/)), ahora incluyendo los datos hasta su última publicación oficial que data de septiembre de 2017.
+
+Top 10 Ranking FIFA Septiembre 2017:
+
+- 1. Alemania
+- 2. Brasil
+- 3. Portugal
+- 4. Argentina
+- 5. Bélgica
+- 6. Polonia
+- 7. Suiza
+- 8. Francia
+- 9. Chile
+- 10. Colombia
+
+Principales cambios:
+
+* Perú alcanza el mejor ranking en su historia: lugar N°12
+* Chile baja al puesto N°9, quedando fuera de la zona de cabezas de serie
+
+```{r c2, cache=T}
+knitr::include_app(" https://bustami.shinyapps.io/fifa_ranking/", height = "750px")
+```
+
+
+

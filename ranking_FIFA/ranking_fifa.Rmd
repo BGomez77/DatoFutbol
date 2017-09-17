@@ -1,0 +1,65 @@
+---
+title: "Ranking FIFA histórico"
+description: ''
+author: "Ismael Gómez"
+lang: es
+date: '2017-07-06'
+output:
+  html_document: default
+  pdf_document: default
+draft: false
+image: false
+menu: ''
+share: yes
+slug: ranking_fifa_historico
+tags:
+- Chile
+- Ranking FIFA
+categories: ["Varios"]
+---
+
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=8, fig.height=5, echo=F, warning=FALSE, message=FALSE)
+```
+
+Dejando atrás la gran participación de La Roja en la reciente Copa Confederaciones 2017, ya debemos empezar a pensar en el próximo objetivo de esta selección: la Copa del Mundo Rusia 2018. Faltan menos de dos meses para el próximo duelo por clasificatorias ante Paraguay en Santiago (31 de agosto), y no hay tiempo para lamentarse por la final perdida con Alemania. En la carrera por la clasificación Chile está ubicado en la cuarta posición tras Brasil, Colombia y Uruguay, seguido muy de cerca por Argentina y Ecuador, quedando tan solo 4 fechas por jugarse ([Tabla de posiciones y Programación](http://www.fifa.com/worldcup/preliminaries/southamerica/index.html)), y aun a la espera de la decisión final del TAS respecto a los puntos reasignados a los rivales de Bolivia cuando disputó, contra el reglamento, encuentros con el jugador [Nélson Cabrera en cancha](http://www.elespectador.com/deportes/futbol-internacional/bolivia-apelara-ante-el-tas-y-espera-que-la-fifa-le-devuelva-los-puntos-articulo-701313).
+
+Mientras esperamos, con la confianza al máximo, que Chile clasifique y disfrutamos del inicio del fútbol local, podemos mirar algo que será relevante para elegir a los cabezas de serie de cada grupo participante en el próximo mundial: el ranking FIFA.
+A continuación podemos ver los primeros 10 lugares de la última actualización del ranking, publicada recién hoy 06 de julio de 2017, correspondiente a su versión N° 276, dado que se publica desde agosto de 1993 sagradamente casi todos los meses.
+
+Top 10 Ranking FIFA Julio 2017:
+
+- 1. Alemania
+- 2. Brasil
+- 3. Argentina
+- 4. Portugal
+- 5. Suiza
+- 6. Polonia
+- 7. Chile
+- 8. Colombia
+- 9. Francia
+- 10. Bélgica
+
+Respecto a la versión anterior (junio de 2017), Chile bajó desde el 4to al 7mo puesto, principalmente por no haber ganado en la mayoría de los partidos amistosos previos a la Copa Confederaciones y en sus partidos oficiales de este torneo, quedando así como último de los 8 cabeza de serie hasta el momento (Rusia como anfitrión es un cabeza de serie fijo independiente de su lugar en el ranking). Pese al numeroso cuestionamiento público del método de cálculo y ponderación del ranking, el que permite por ejemplo que hasta ahora Suiza y Polonia sean cabezas de serie (!), este seguirá siendo el criterio oficial de decisión. En el siguiente hipervínculo se puede ver la tabla completa para [julio 2017](http://es.fifa.com/fifa-world-ranking/ranking-table/men/index.html).
+
+***
+
+Son numerosos los records y las hazañas que esta generación ha logrado inmortalizar en la historia del fútbol chileno. Uno de dichos hitos está asociado al ranking FIFA. Esta generación superó el record de la selección de la dupla Sa-Za, Francia '98 y de Don Nelsón Bonifacio Acosta, la cual había alcanzado el 6to lugar en abril de 1998. La Roja de esta generación dorada batió este record alcanzando por primera vez el 3er lugar, y manteniéndose 2 meses allí (abril y mayo de 2016).
+
+Para visualizar el ranking histórico de La Roja y de todas las selecciones asociadas a la FIFA, a continuación te dejamos esta aplicación interactiva con la que puedes observar el comportamiento histórico del ranking por mes y año. Puedes visualizar hasta 3 selecciones simultáneamente y elegir el año de inicio. Dejamos por defecto además de Chile a las selecciones de Paraguay y Ecuador, próximos rivales de La Roja en clasificatorias en calidad de local.
+
+
+(Última actualización: 14 septiembre 2017)
+```{r c2, cache=T}
+knitr::include_app(" https://bustami.shinyapps.io/fifa_ranking/", height = "750px")
+```
+
+Si bajas el año de inicio hasta 1993, se aprecian claramente los aproximadamente 5-6 años (entre 2001 y 2006) más malos de las últimas décadas de Chile a nivel de selección, donde no logramos clasificar a dos mundiales, no tuvimos grandes participaciones en Copa América y pasaron varios entrenadores por Juan Pinto Durán, antes de la llegada de Marcelo Bielsa, quien fue uno de los protagonistas del despegue de esta "generación dorada".
+
+Como ya nos acostumbramos a romper la historia, pensamos que esta selección puede dar aun más. Solo por mencionar un par de logros pendientes: 
+
+1) Clasificar a un tercer mundial consecutivo; y 
+2) Ser cabeza de serie en un mundial donde no es anfitrión. 
+
+Vamos x más! Viva Chile! 
