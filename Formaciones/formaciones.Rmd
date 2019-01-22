@@ -132,7 +132,7 @@ Por otro lado, Bundesliga y Serie A tienen un comportamieto más homogéneo, rep
   
 Premier League
 ```{r c5,cache=T}
-pform3 <- ggplot(t2[which(t2$league_id=="Premier League"),], aes(x = form)) + 
+pform3 <- ggplot(t2[which(t2$league=="Premier League"),], aes(x = form)) + 
         geom_bar(stat = "count", fill="lightseagreen") + 
         coord_flip()
 p3 = pform3 + facet_wrap(~ season, nrow=2) + theme_bw() +
@@ -150,7 +150,7 @@ p3
 ```
 BBVA
 ```{r c6,cache=T}
-pform4 <- ggplot(t2[which(t2$league_id=="BBVA"),], aes(x = form)) + 
+pform4 <- ggplot(t2[which(t2$league=="BBVA"),], aes(x = form)) + 
         geom_bar(stat = "count", fill="tomato2") + 
         coord_flip()
 p4 = pform4 + facet_wrap(~ season, nrow=2) + theme_bw() +
@@ -168,7 +168,7 @@ p4
 ```
 Serie A
 ```{r c7,cache=T}
-pform5 <- ggplot(t2[which(t2$league_id=="Serie A"),], aes(x = form)) + 
+pform5 <- ggplot(t2[which(t2$league=="Serie A"),], aes(x = form)) + 
         geom_bar(stat = "count", fill="mediumpurple") + 
         coord_flip()
 p5 = pform5 + facet_wrap(~ season, nrow=2) + theme_bw() +
@@ -186,7 +186,7 @@ p5
 ```
 Bundesliga
 ```{r c8,cache=T}
-pform6 <- ggplot(t2[which(t2$league_id=="Bundesliga"),], aes(x = form)) + 
+pform6 <- ggplot(t2[which(t2$league=="Bundesliga"),], aes(x = form)) + 
         geom_bar(stat = "count", fill="olivedrab3") + 
         coord_flip()
 p6 = pform6 + facet_wrap(~ season, nrow=2) + theme_bw() +
