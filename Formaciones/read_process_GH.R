@@ -52,6 +52,9 @@ abline(a=6.5, b=0, col="red", lw=2)
 # Antes se debe recodificar el medio campo con volantes defensivos y ofensivos
 # Vamos a considerar un y =5 e y=6 como volantes defensivos
 
+y3 <- y
+y4 <- y2
+
 PosL2 <- matrix(nrow=nrow(y3), ncol=ncol(y3))
 for (i in 1:nrow(y3))
 {
