@@ -60,16 +60,16 @@ t2 <- rbind(Locales,Visitas)
 
 # distribucion formaciones
 # # local
-local_form <- t1 %>% count('formLocal') %>% mutate(S = "L")
+local_form <- t1 %>% count(formLocal) %>% mutate(S = "L")
 names(local_form)[1] <- "form"
 # # away
-away_form <- t1 %>% count('formVisita') %>% mutate(S = "V")
+away_form <- t1 %>% count(formVisita) %>% mutate(S = "V")
 names(away_form)[1] <- "form"
 # # ambos
 form <- rbind(local_form, away_form)
 
-ft <- aggregate(freq ~ form, data=form, FUN=sum)
-ft <- ft[order(ft$freq,decreasing = F),]
+ft <- aggregate(n ~ form, data=form, FUN=sum)
+ft <- ft[order(ft$n,decreasing = F),]
 
 pform1 <- ggplot(t2, aes(x = form)) + 
         geom_bar(stat = "count", aes(fill=factor(Team)), alpha=0.4, position = position_identity()) + 
