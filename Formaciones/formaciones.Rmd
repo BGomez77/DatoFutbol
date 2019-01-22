@@ -60,10 +60,10 @@ t2 <- rbind(Locales,Visitas)
 
 # distribucion formaciones
 # # local
-local_form <- t1 %>% count(formLocal) %>% mutate(S = "L")
+local_form <- t1 %>% dplyr::count(formLocal) %>% mutate(S = "L")
 names(local_form)[1] <- "form"
 # # away
-away_form <- t1 %>% count(formVisita) %>% mutate(S = "V")
+away_form <- t1 %>% dplyr::count(formVisita) %>% mutate(S = "V")
 names(away_form)[1] <- "form"
 # # ambos
 form <- rbind(local_form, away_form)
@@ -150,7 +150,7 @@ p3
 ```
 BBVA
 ```{r c6,cache=T}
-pform4 <- ggplot(t2[which(t2$league=="BBVA"),], aes(x = form)) + 
+pform4 <- ggplot(t2[which(t2$league=="La Liga"),], aes(x = form)) + 
         geom_bar(stat = "count", fill="tomato2") + 
         coord_flip()
 p4 = pform4 + facet_wrap(~ season, nrow=2) + theme_bw() +
