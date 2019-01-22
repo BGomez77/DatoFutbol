@@ -100,20 +100,23 @@ No hay diferencias notorias entre las formaciones usadas por equipos locales y e
 ###### 2) Total de formaciones por ligas
 
 ```{r c4,cache=T}
+t2 <- t2 %>% mutate(league=if_else(league_id==1729, 'Premier League', if_else(league_id==7775, 'Bundesliga', 
+                           if_else(league_id==10223, 'Serie A', 'La Liga'))) )
+
 pform2 <- ggplot(t2, aes(x = form)) + 
-        geom_bar(stat = "count", aes(fill=factor(league_id))) + 
-        coord_flip()
-p2 = pform2 + facet_grid(~ league_id) + theme_bw() +
-        labs(x="Formaciones", y="Número de partidos") +
-        theme(axis.text.x = element_text(vjust=0.5, size=10), 
-              axis.text.y = element_text(vjust=0.5, size=10), 
-              axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
-              axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
-              strip.text.x = element_text(face="bold", size=10),
-              strip.background = element_rect(fill="ghostwhite"),
-              legend.position="none") +
-        scale_x_discrete(limits=t(ft[6:21,1])) +
-        ggtitle(label="Formaciones iniciales por ligas", subtitle = "Dataset: 10733 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
+  geom_bar(stat = "count", aes(fill=factor(league))) + 
+  coord_flip()
+p2 = pform2 + facet_grid(~ league) + theme_bw() +
+  labs(x="Formaciones", y="Número de partidos") +
+  theme(axis.text.x = element_text(vjust=0.5, size=10), 
+        axis.text.y = element_text(vjust=0.5, size=10), 
+        axis.title.x = element_text(face="bold", size=12, margin=margin(8,8,0,0)), 
+        axis.title.y = element_text(face="bold", size=12, margin=margin(8,8,0,0)),
+        strip.text.x = element_text(face="bold", size=10),
+        strip.background = element_rect(fill="ghostwhite"),
+        legend.position="none") +
+  scale_x_discrete(limits=t(ft[6:21,1])) +
+  ggtitle(label="Formaciones iniciales por ligas", subtitle = "Dataset: 10733 partidos de ligas BBVA, Serie A, Bundesliga y Premier.\nEntre 2008/2009 y 2015/2016.\nEquipos Local y Visita")
 p2
 ```
 
