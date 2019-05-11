@@ -1,5 +1,7 @@
 # DatoFutbol
-The official repository of the project Dato Fútbol (web: datofutbol.cl + Twitter: @DatoFutbol_cl)
+The official repository of the project Dato Fútbol
+web: datofutbol.cl 
+Twitter: @DatoFutbol_cl
 
 Here you can find the databases and respective processing codes related to some analysis.
 
