@@ -13,8 +13,9 @@ soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2
     ## Subsetting
     s <- sequence
     w <- data %>%
-         filter(sequ == s) %>%
-         mutate(sample = seq(1, nrow(w)))
+         filter(sequ == s)
+        
+    w$sample <- seq(1, nrow(w))
         
     ## Transform data structure for 1 sequence
     if (provider=="stats"){
