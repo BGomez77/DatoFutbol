@@ -13,9 +13,8 @@ soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2
     ## Subsetting
     s <- sequence
     w <- data %>%
-         filter(sequ == s)
-        
-    w$sample <- seq(1, nrow(w))
+         filter(sequ == s) %>%
+         mutate(sample = seq(1, nrow(w)))
         
     ## Transform data structure for 1 sequence
     if (provider=="stats"){
@@ -46,7 +45,6 @@ soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2
         
         wtt <- soccerTransform(wt, xMin=-52.5, xMax=52.5, yMin=-34, yMax=34, 
                                method="manual", lengthPitch = 120, widthPitch = 80)
-        
         
         # reshaping ball info
         btx <- gather(w, key, value, -1, -idx1, -idx2, -idy1, -idy2, -47, -48) %>%
