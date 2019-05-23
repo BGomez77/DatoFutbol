@@ -81,18 +81,19 @@ soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2
                                fill   = pitch_color,
                                dimensions = pitch_statsbomb) +
                 theme_pitch() +
+                geom_polygon(data=hull_data, aes(x=x, y=y, fill=factor(team_name)), alpha=0.3) +      
                 geom_point(data=pos_data, aes(x=x, y=y, fill=factor(team_name), 
                                               size=factor(team_name)), 
                            col="black", 
                            shape=21) +
-                geom_polygon(data=hull_data, aes(x=x, y=y, fill=factor(team_name)), alpha=0.3) +
                 transition_time(sample) +
                 theme(plot.background = element_rect(fill = pitch_color),
                       title = element_text(colour = "white"),
                       legend.position = "none") +
                 scale_size_manual(values=c(5,3,5)) +
                 scale_fill_manual(values=c(team1_color, "yellow", team2_color), 
-                                  aesthetics = "fill")
+                                  aesthetics = "fill") +
+                ggtitle(label=paste("Stats insights dataset - ", sequence, "/ @DatoFutbol_cl")) 
         
         a <- animate(anim,
                      width = 1024, height = 768,
@@ -121,7 +122,8 @@ soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2
                   legend.position = "none") +
             scale_size_manual(values=c(5,3,5)) +
             scale_fill_manual(values=c(team1_color, "yellow", team2_color), 
-                              aesthetics = "fill")
+                              aesthetics = "fill") +
+            ggtitle(label=paste("Stats insights dataset - ", sequence, "/ @DatoFutbol_cl"))
             
         a <- animate(anim,
                      width = 1024, height = 768,
