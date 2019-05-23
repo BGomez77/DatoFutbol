@@ -1,4 +1,5 @@
-soccerAnimate <- function(data, sequence, pitch_color="chartreuse4", convexhull=T, provider="stats"){
+soccerAnimate <- function(data, sequence, pitch_color="#78c679", team1_color="#2b8cbe", team2_color= "#dd3497", 
+                          convexhull=T, provider="stats"){
     require(dplyr)
     require(tidyr)
     require(stringr)
@@ -86,13 +87,13 @@ soccerAnimate <- function(data, sequence, pitch_color="chartreuse4", convexhull=
                                               size=factor(team_name)), 
                            col="black", 
                            shape=21) +
-                geom_polygon(data=hull_data, aes(x=x, y=y, fill=factor(team_name)), alpha=0.5) +
+                geom_polygon(data=hull_data, aes(x=x, y=y, fill=factor(team_name)), alpha=0.3) +
                 transition_time(sample) +
                 theme(plot.background = element_rect(fill = pitch_color),
                       title = element_text(colour = "white"),
                       legend.position = "none") +
                 scale_size_manual(values=c(5,3,5)) +
-                scale_fill_manual(values=c("#2b8cbe", "yellow", "#dd3497"), 
+                scale_fill_manual(values=c(team1_color, "yellow", team2_color), 
                                   aesthetics = "fill")
         
         a <- animate(anim,
@@ -121,7 +122,7 @@ soccerAnimate <- function(data, sequence, pitch_color="chartreuse4", convexhull=
                   title = element_text(colour = "white"),
                   legend.position = "none") +
             scale_size_manual(values=c(5,3,5)) +
-            scale_fill_manual(values=c("#2b8cbe", "yellow", "#dd3497"), 
+            scale_fill_manual(values=c(team1_color, "yellow", team2_color), 
                               aesthetics = "fill")
             
         a <- animate(anim,
