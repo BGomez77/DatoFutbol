@@ -7,7 +7,7 @@ library(dplyr)
 ## Load data
 #(https://stackoverflow.com/questions/35121192/reading-a-pickle-file-pandas-python-data-frame-in-r)
 source_python("script.py")
-data <- read_pickle_file("train_data.pkl")
+data <- read_pickle_file("train_data.pkl")  # filename from Stats dataset
 
 ## Get dataframe with all data
 dt_list <- map(data, as.data.frame)
@@ -20,5 +20,5 @@ df <- dt_data %>%
 
 ## Animation
 source("soccerAnimate.R")
-soccerAnimate(df, "sequence_1001")
-anim_save(paste0(s,".gif"))
+soccerAnimate(df, "sequence_1001")  #sequence nama from Stats dataset
+anim_save("output.gif") 
