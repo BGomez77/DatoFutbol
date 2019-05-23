@@ -1,31 +1,25 @@
 ### Packages
-
 require(reticulate)
-
 require(purrr)
 require(data.table)
 require(dplyr)
-
 require(tidyr)
 require(stringr)
-
 #if (!require("devtools")) install.packages("devtools")
 #devtools::install_github("jogall/soccermatics")
 require(soccermatics)
 #devtools::install_github("torvaney/ggsoccer")
 require(ggsoccer)
-
 require(ggplot2)
-
 #devtools::install_github('thomasp85/gganimate')
 library(gganimate)
 #install.packages("gifski")
 library(gifski)
 
-
 ### Load data
+#(https://stackoverflow.com/questions/35121192/reading-a-pickle-file-pandas-python-data-frame-in-r)
 source_python("script.py")
-data <- read_pickle_file("test_data_1.pkl")
+data <- read_pickle_file("test_data_1.pkl") #filename from Data Insights dataset
 
 ### Get dataframe with all data
 dt_list <- map(data, as.data.frame)
@@ -36,7 +30,6 @@ df <- dt_data %>%
 
 #write.csv(df, "data_test.csv", row.names=F)
 #df <- read.csv("data_test.csv", stringsAsFactors = F)
-
 
 ### Transform data structure for 1 sequence
 w <- df %>%
@@ -69,7 +62,7 @@ wt <- wtx %>% inner_join(wty, by=c("sample", "key2")) %>%
       rename(sequ=sequ.x, key=key2, x=value.x, y=value.y)
 
 wtt <- soccerTransform(wt, xMin=-52.5, xMax=52.5, yMin=-34, yMax=34, 
-                       method="manual")
+                       method="manual", lengthPitch = 120, widthPitch = 80)
 
 # reshaping ball info
 btx <- gather(w, key, value, -1, -idx1, -idx2, -idy1, -idy2, -47, -48) %>%
@@ -83,7 +76,7 @@ bt <- btx %>% inner_join(bty, by="sample") %>%
         rename(sequ=sequ.x, x=value.x, y=value.y)
 
 btt <- soccerTransform(bt, xMin=-52.5, xMax=52.5, yMin=-34, yMax=34, 
-                       method="manual")
+                       method="manual", lengthPitch = 120, widthPitch = 80)
 
 btt$key <- "ball"
 
